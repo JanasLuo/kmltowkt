@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="./script/jquery-1.11.1.min.js"></script>
+    <script src="./script/terraformer.min.js"></script>
+    <script src="./script/terraformer-wkt-parser.min.js"></script>
+    <script src="script/togeojson.js"></script>
+    <script>
+      /* 多个polygon处理 */
+      function formatPolygon(wktList, item) {
+        let multiStr = 'MULTIPOLYGON(';
+        const reg_word = /[A-Z]+\s?/gi;
+        const geometries = item.geometry.geometries;
+        geometries.forEach((j, index) => {
+          let wkt = Terraformer.WKT.convert(j).replace(reg_word, '');
+          multiStr += `${wkt}${index === geometries.length - 1 ? '' : ','}`;
+        });
+        multiStr += ')';
+        console.log('multiStr', multiStr);
+        wktList.push({
+          type: 'MultiPolygon',
+          name: item.properties && item.properties.name,
+          wkt: multiStr,
+        });
+      }
+      /* 多个LineString处理 */
+      function formatLine(wktList, item) {
+        let multiStr = 'MULTILINESTRING(';
+        const reg_word = /[A-Z]+\s?/gi;
+        const geometries = item.geometry.geometries;
+        geometries.forEach((j, index) => {
+          let wkt = Terraformer.WKT.convert(j).replace(reg_word, '');
+          multiStr += `${wkt}${index === geometries.length - 1 ? '' : ','}`;
+        });
+        multiStr += ')';
+        console.log('multiStr', multiStr);
+        wktList.push({
+          type: 'MultiLineString',
+          name: item.properties && item.properties.name,
+          wkt: multiStr,
+        });
+      }
+      // $.ajax('/data/崇明区_街道_行政边界.kml').done(function (xml) {
+      //   var geojson = toGeoJSON.kml(xml);
+      //   console.log('崇明区_街道_行政边界 geojson', geojson);
+      //   const wktList = [];
+      //   geojson.features.forEach((item) => {
+      //     if (item.geometry && item.geometry.type === 'GeometryCollection') {
+      //       formatPolygon(wktList, item);
+      //     } else {
+      //       wktList.push({
+      //         type: item.geometry && item.geometry.type,
+      //         name: item.properties && item.properties.name,
+      //         wkt: Terraformer.WKT.convert(item.geometry),
+      //       });
+      //     }
+      //   });
+      //   console.log('崇明区_街道_行政边界', wktList);
+      //   localStorage.setItem('崇明区_行政边界', JSON.stringify(wktList));
+      // });
+
+      $.ajax('/data-bak/江岸区_矢量路网街道.kml').done(function (xml) {
+        var geojson = toGeoJSON.kml(xml);
+        console.log('江岸区_矢量路网街道', geojson);
+        // localStorage.setItem('geo', JSON.stringify(geojson));
+
+        const wktList = [];
+        geojson.features.forEach((item) => {
+          if (item.geometry && item.geometry.type === 'GeometryCollection') {
+            debugger;
+            formatPolygon(wktList, item);
+          } else {
+            wktList.push({
+              type: item.geometry && item.geometry.type,
+              name: item.properties && item.properties.name,
+              wkt: Terraformer.WKT.convert(item.geometry),
+            });
+          }
+        });
+        console.log('江岸区_矢量路网街道', wktList);
+        // localStorage.setItem('wkt', JSON.stringify(wktList));
+      });
+    </script>
+  </head>
+  <body></body>
+</html>
