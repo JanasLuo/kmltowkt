@@ -39,8 +39,10 @@ fs.readdir(pathName, function (err, files) {
 function tranformKmlToXlsx(fileName) {
   // kml转geojson
   var geojson = kmlToGeoJson(fileName)
+  console.log('geojson', geojson)
   // geojson转wkt数组
   var wktList = geoJsonToWktList(geojson)
+  console.log('wktList', wktList)
   var sheetData = [
     {
       name: 'sheet1',
@@ -58,7 +60,7 @@ function kmlToGeoJson(fileName) {
 }
 /* geojson转wkt数组 */
 function geoJsonToWktList(geojson) {
-  const wktList = [['type', 'name', 'wkt', 'description']];
+  const wktList = [['type', 'name', 'wkt']];
   geojson.features.forEach((item) => {
     if (item.geometry && item.geometry.type === 'GeometryCollection') {
       if (item.geometry.geometries[0].type === 'Polygon') {
@@ -70,14 +72,11 @@ function geoJsonToWktList(geojson) {
 
     } else {
       const reg = /( Z| 0)/g
-      // 手动处理偏移
-      // selfFormat(item.geometry, -0.0008, 0.0004)
       let wktstr = wkt.convert(item.geometry).replace(reg, '');
       wktList.push([
         item.geometry && item.geometry.type,
         item.properties && item.properties.name,
         wktstr,
-        item.properties && item.properties.description,
       ]);
     }
   });
@@ -100,8 +99,6 @@ function formatPolygon(wktList, item) {
   const reg_word = /[A-Z]+\s?/gi;
   const geometries = item.geometry.geometries;
   geometries.forEach((j, index) => {
-    // 手动处理偏移
-    // selfFormat(j, -0.0008, 0.0004)
     let wktstr = wkt.convert(j).replace(reg_word, '');
     multiStr += `${wktstr}${index === geometries.length - 1 ? '' : ','}`;
   });
@@ -128,8 +125,4 @@ function formatLine(wktList, item) {
     item.properties && item.properties.name,
     multiStr,
   ]);
-}
-/* 手动处理坐标偏移 */
-function selfFormat(geometry, difLng, difLat) {
-  geometry.coordinates = geometry.coordinates.map(coordinate => coordinate.map(item => [item[0] + difLng, item[1] + difLat]))
 }
